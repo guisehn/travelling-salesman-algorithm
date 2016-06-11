@@ -4,7 +4,7 @@ const _ = require('lodash')
 
 function getDistances(distances, node, path) {
   return distances[node]
-    .map((distance, node) => path.indexOf(node) === -1 ? distance : Infinity) // remove visited nodes
+    .map((distance, node) => _.includes(path, node) ? Infinity : distance) // remove visited nodes
 }
 
 function getCloserNode(distances) {
@@ -17,7 +17,7 @@ function getCloserNode(distances) {
   return _.findIndex(distances, x => x === closerDistance)
 }
 
-function greedyCalculate(nodeNames, startNode, distances) {
+function greedyCalculate(startNode, distances) {
   let currentNode = startNode
   let path = [startNode]
 
@@ -29,7 +29,9 @@ function greedyCalculate(nodeNames, startNode, distances) {
     path.push(closerNode)
   }
 
-  return path.concat(startNode)
+  path.push(startNode)
+
+  return pathToSolution(path, distances)
 }
 
 function calculateTotalDistance(path, distances) {
@@ -44,8 +46,9 @@ function calculateTotalDistance(path, distances) {
 
 function performRotations(sourcePath, rotationSize) {
   let paths = []
+  let max = sourcePath.length - rotationSize
 
-  for (let i = 1; i < sourcePath.length - rotationSize; i++) {
+  for (let i = 1; i < max; i++) {
     let path = _.clone(sourcePath)
     let portion = path.slice(i, i + rotationSize).reverse()
 
@@ -60,21 +63,20 @@ function performRotations(sourcePath, rotationSize) {
   return paths
 }
 
-function getFinalSolution(initialPath, distances) {
-  let bestSolution = {
-    path: initialPath,
-    distance: calculateTotalDistance(initialPath, distances)
+function pathToSolution(path, distances) {
+  return {
+    path: path,
+    distance: calculateTotalDistance(path, distances)
   }
+}
+
+function optimizeSolution(initialSolution, distances) {
+  let bestSolution = initialSolution
 
   for (let rotationSize = 2; rotationSize < distances.length; rotationSize++) {
     let paths = performRotations(bestSolution.path, rotationSize)
-
-    let candidates = paths.map(path => ({
-      path: path,
-      distance: calculateTotalDistance(path, distances)
-    }))
-
-    let currentBestSolution = _.minBy(candidates, 'distance')
+    let solutions = paths.map(path => pathToSolution(path, distances))
+    let currentBestSolution = _.minBy(solutions, 'distance')
 
     if (currentBestSolution.distance < bestSolution.distance) {
       bestSolution = currentBestSolution
@@ -85,8 +87,8 @@ function getFinalSolution(initialPath, distances) {
 }
 
 function calculate(nodeNames, startNode, distances) {
-  let initialPath = greedyCalculate(nodeNames, startNode, distances)
-  let finalSolution = getFinalSolution(initialPath, distances)
+  let initialSolution = greedyCalculate(startNode, distances)
+  let finalSolution = optimizeSolution(initialSolution, distances)
 
   finalSolution.path = finalSolution.path.map(x => nodeNames[x])
 
