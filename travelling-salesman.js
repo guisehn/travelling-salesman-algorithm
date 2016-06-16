@@ -86,11 +86,9 @@ function optimizeSolution(initialSolution, distances) {
   return bestSolution
 }
 
-function calculate(nodeNames, startNode, distances) {
+function calculate(startNode, distances) {
   let initialSolution = greedyCalculate(startNode, distances)
   let finalSolution = optimizeSolution(initialSolution, distances)
-
-  finalSolution.path = finalSolution.path.map(x => nodeNames[x])
 
   return finalSolution
 }

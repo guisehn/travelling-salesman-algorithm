@@ -23,10 +23,6 @@ function getDistance(x1, y1, x2, y2) {
   return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
 }
 
-function getNodeNames(tuples) {
-  return tuples.map(x => x[0])
-}
-
 function mountDistanceMatrix(tuples) {
   let matrix = []
 
@@ -50,22 +46,18 @@ function mountDistanceMatrix(tuples) {
   return matrix
 }
 
+function addNodeNamesTo(result, tuples) {
+  let nodeNames = tuples.map(x => x[0])
+  result.path = result.path.map(x => nodeNames[x])
+}
+
 function run() {
   let content = readFile()
   let tuples = mountTuples(content)
   let distances = mountDistanceMatrix(tuples)
-  let nodeNames = getNodeNames(tuples)
+  let result = TravellingSalesman.calculate(0, distances)
 
-  /*nodeNames = ['1', '2', '3', '4', '5']
-  distances = [
-    [Infinity, 120, 220, 150, 210],
-    [120, Infinity, 100, 110, 130],
-    [220, 80, Infinity, 160, 185],
-    [150, Infinity, 160, Infinity, 190],
-    [210, 130, 185, Infinity, Infinity]
-  ]*/
-
-  let result = TravellingSalesman.calculate(nodeNames, 0, distances)
+  addNodeNamesTo(result, tuples)
 
   console.log('Path: ' + result.path.join(' - '))
   console.log('Distance: ' + result.distance)
